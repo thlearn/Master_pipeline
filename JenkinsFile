@@ -33,11 +33,23 @@ agent any
    stage('Docker Build, Push'){   
        steps{
            withDockerRegistry(credentialsId: 'docker', url: 'https://index.docker.io/v1/') {
-	           sh "docker  build -t  hareshdocker/eksdemotomcat:$BUILD_NUMBER ."
-                   sh "docker  push  hareshdocker/eksdemotomcat:$BUILD_NUMBER"
+	           sh "docker  build -t  hareshdocker/$DOCKER_IMAGE_NAME:$BUILD_NUMBER ."
+                   sh "docker  push  hareshdocker/$DOCKER_IMAGE_NAME:$BUILD_NUMBER"
           }
        }
      } 
+  stage("Deploy to Kubernetes"){
+  
+   steps{
+          sh "sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' k8s/deployment.yml"
+	  if ($APP_BRANCH_NAME == 'master') {
+            sh 'kubectl config use-context eks-user@cluster-dev.us-east-1.eksctl.io'
+           } else {
+            sh 'kubectl config use-context eks-user@cluster-dev.us-east-1.eksctl.io'
+          }
+	  sh "kubectl apply -f k8s/*"
+	}      
+      }
    }
 }
 
