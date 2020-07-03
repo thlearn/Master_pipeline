@@ -1,55 +1,57 @@
-pipeline{
-agent any
+pipeline {
+ agent any
 
-  parameters {
+ parameters {
   string(name: 'DEPLOY_ENV', defaultValue: 'development', description: '')
   string(name: 'APP_GIT_REPO', defaultValue: 'https://github.com/thlearn/kubernetesci-cd.git', description: '')
   string(name: 'APP_BRANCH_NAME', defaultValue: 'master', description: '')
   string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'eksdemotomcat', description: '')
-  
-  }
- 
- stages{
-    stage("echo"){
-       steps{
-           echo "DEPLOY_ENV $DEPLOY_ENV"
-           echo "APP_GIT_REPO $APP_GIT_REPO"
-           echo "APP_BRANCH_NAME $APP_BRANCH_NAME"
-           echo "DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME"
-          } 
-      }
-      
-    stage("Checkout code"){
-       steps{
-          checkout([$class: 'GitSCM', branches: [[name: APP_BRANCH_NAME]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: APP_GIT_REPO ]]])
-                sh "ls -lart ./*"
-          } 
-      }
-    stage("Compile Code"){
-       steps{
-          sh "mvn clean install"
-          } 
-      }  
-   stage('Docker Build, Push'){   
-       steps{
-           withDockerRegistry(credentialsId: 'docker', url: 'https://index.docker.io/v1/') {
-	           sh "docker  build -t  hareshdocker/$DOCKER_IMAGE_NAME:$BUILD_NUMBER ."
-                   sh "docker  push  hareshdocker/$DOCKER_IMAGE_NAME:$BUILD_NUMBER"
-          }
-       }
-     } 
-  stage("Deploy to Kubernetes"){
-  
-   steps{
-          sh "sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' k8s/deployment.yml"
-	  if ($APP_BRANCH_NAME == 'master') {
-            sh 'kubectl config use-context eks-user@cluster-dev.us-east-1.eksctl.io'
-           } else {
-            sh 'kubectl config use-context eks-user@cluster-dev.us-east-1.eksctl.io'
-          }
-	  sh "kubectl apply -f k8s/*"
-	}      
-      }
-   }
-}
 
+ }
+
+ stages {
+  stage("echo") {
+   steps {
+    echo "DEPLOY_ENV $DEPLOY_ENV"
+    echo "APP_GIT_REPO $APP_GIT_REPO"
+    echo "APP_BRANCH_NAME $APP_BRANCH_NAME"
+    echo "DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME"
+   }
+  }
+
+  stage("Checkout code") {
+   steps {
+    checkout([$class: 'GitSCM', branches: [
+     [name: APP_BRANCH_NAME]
+    ], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [
+     [url: APP_GIT_REPO]
+    ]])
+    sh "ls -lart ./*"
+   }
+  }
+  stage("Compile Code") {
+   steps {
+    sh "mvn clean install"
+   }
+  }
+  stage('Docker Build, Push') {
+   steps {
+    withDockerRegistry(credentialsId: 'docker', url: 'https://index.docker.io/v1/') {
+     sh "docker  build -t  hareshdocker/$DOCKER_IMAGE_NAME:$BUILD_NUMBER ."
+     sh "docker  push  hareshdocker/$DOCKER_IMAGE_NAME:$BUILD_NUMBER"
+    }
+   }
+  }
+  stage("Deploy to Kubernetes") {
+   steps{
+    sh "sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' k8s/deployment.yml"
+    if ($APP_BRANCH_NAME == 'master') {
+     sh 'kubectl config use-context eks-user@cluster-dev.us-east-1.eksctl.io'
+    } else {
+     sh 'kubectl config use-context eks-user@cluster-dev.us-east-1.eksctl.io'
+    }
+    sh "kubectl apply -f k8s/*"
+   }
+  }
+ }
+}
