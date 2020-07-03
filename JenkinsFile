@@ -31,10 +31,10 @@ agent any
           } 
       }  
    stage('Docker Build, Push'){   
-       step{
+       steps{
            withDockerRegistry(credentialsId: 'docker') {
 	           sh "docker  build -t  hareshdocker/eksdemotomcat:$BUILD_NUMBER ."
-             sh "docker  push  hareshdocker/eksdemotomcat:$BUILD_NUMBER"
+                   sh "docker  push  hareshdocker/eksdemotomcat:$BUILD_NUMBER"
           }
        }
      } 
