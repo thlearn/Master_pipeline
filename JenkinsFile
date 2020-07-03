@@ -11,15 +11,20 @@ agent none
  
  stages{
     stage("echo"){
-    steps{
-    echo "DEPLOY_ENV $DEPLOY_ENV"
-    echo "APP_GIT_REPO $APP_GIT_REPO"
-    echo "APP_BRANCH_NAME $APP_BRANCH_NAME"
-    echo "DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME"
-    }
-    
-    
-    }
-  }
+       steps{
+           echo "DEPLOY_ENV $DEPLOY_ENV"
+           echo "APP_GIT_REPO $APP_GIT_REPO"
+           echo "APP_BRANCH_NAME $APP_BRANCH_NAME"
+           echo "DOCKER_IMAGE_NAME $DOCKER_IMAGE_NAME"
+          } 
+      }
+      
+    stage("Checkout code"){
+       steps{
+          checkout([$class: 'GitSCM', branches: [[name: '*/APP_BRANCH_NAME']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: APP_GIT_REPO ]]])
+                sh "ls -lart ./*"
+          } 
+      }
+   }
 }
 
