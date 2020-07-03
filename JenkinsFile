@@ -44,6 +44,7 @@ pipeline {
   }
   stage("Deploy to Kubernetes") {
    steps{
+     script{
     sh "sed -i 's/BUILD_NUMBER/$BUILD_NUMBER/g' k8s/deployment.yml"
     if(APP_BRANCH_NAME == 'master'){
      sh 'kubectl config use-context eks-user@cluster-dev.us-east-1.eksctl.io'
@@ -51,7 +52,8 @@ pipeline {
      sh 'kubectl config use-context eks-user@cluster-dev.us-east-1.eksctl.io'
     }
     sh "kubectl apply -f k8s/*"
-   }
+     }
+   } 
   }
  }
 }
