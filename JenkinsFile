@@ -25,6 +25,19 @@ agent any
                 sh "ls -lart ./*"
           } 
       }
+    stage("Compile Code"){
+       steps{
+          sh "mvn clean install"
+          } 
+      }  
+   stage('Docker Build, Push'){   
+       step{
+           withDockerRegistry(credentialsId: 'docker') {
+	           sh "docker  build -t  hareshdocker/eksdemotomcat:$BUILD_NUMBER ."
+             sh "docker  push  hareshdocker/eksdemotomcat:$BUILD_NUMBER"
+          }
+       }
+     } 
    }
 }
 
